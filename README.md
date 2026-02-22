@@ -1,8 +1,8 @@
-# NarrativeIQ 
+# NarrativeIQ ✍️
 
 > AI-powered writing intelligence — enhance scripts, analyze consistency, track characters, and map narratives.
 
-NarrativeIQ is a full-stack SaaS platform that gives writers, screenwriters, and storytellers a suite of AI tools to craft better narratives. It combines a React + TypeScript frontend with a Python FastAPI backend, Supabase for auth and storage, and Stripe for payments.
+NarrativeIQ is a full-stack SaaS platform that gives writers, screenwriters, and storytellers a suite of AI tools to craft better narratives. It combines a React + TypeScript frontend with a Python Flask backend and MongoDB for storage.
 
 ---
 
@@ -32,19 +32,19 @@ NarrativeIQ is a full-stack SaaS platform that gives writers, screenwriters, and
 ## Features
 
 ### 🔐 1. Authentication & User Management
-- JWT-based user registration and login
-- Secure token authentication
-- Profile updates and password change
-- Persistent user accounts via Supabase
+- JWT-based user registration and login (custom HS256 tokens)
+- Password hashing with bcrypt
+- Profile updates (name, email) with token re-issuance
+- Password change with current password verification
+- Persistent user accounts in MongoDB
 
 ---
 
 ### 💳 2. Credit-Based Usage System
-- New users receive default credits on signup
-- Credits deducted atomically per feature call (no race conditions)
-- Real-time credit balance shown in the sidebar
-- Credit top-up via Stripe payments
-- Per-feature pricing configured centrally in `config.py`
+- New users receive default credits on signup (configurable via `NEW_USER_CREDITS` env var)
+- Credits deducted per feature call with automatic refund on AI failure
+- Real-time credit balance tracking
+- Feature pricing configured centrally in `FEATURE_PRICING`
 
 ---
 
@@ -57,99 +57,96 @@ Rewrites your text in 6 distinct voices:
 | Technical | Structured, jargon-aware, logically sequenced |
 | Business | Persuasive, executive-ready, results-oriented |
 | Finance | Analytical, data-oriented, objective |
-| Simplified | Clear enough for a 12-year-old, no jargon |
+| Simplified | Clear enough for a beginner, no jargon |
 | Comedian | Witty, punchy, light without losing the message |
 | Poet | Lyrical, metaphor-rich, emotionally resonant |
 
-Capabilities: clarity improvement, structural refinement, tone transformation, meaning preservation. Delivered via **SSE streaming** so results appear in real time.
+Capabilities: clarity improvement, structural refinement, tone transformation, meaning preservation. Returns enhanced text, word-level diff, similarity score, and a log of key changes with reasons.
 
 ---
 
 ### 🔍 4. Narrative Consistency Analysis
 
-Detects: character inconsistencies, timeline conflicts, logical contradictions, tone shifts, setting conflicts, and plot holes.
+Detects: character inconsistencies, timeline conflicts, factual contradictions, tone shifts, plot holes, and setting conflicts.
 
-Outputs: issue classification, severity scoring (low / medium / high), and an overall consistency score out of 100.
+Outputs: issue classification with type, description, excerpt, and severity (low / medium / high), plus an overall consistency score out of 100.
 
 ---
 
 ### 📊 5. Structure & Clarity Analysis
 
-Evaluates structural quality, clarity, flow coherence, writing strengths, and improvement suggestions. Produces individual scores for structure, clarity, and flow.
+Evaluates structural quality, clarity, flow coherence, writing strengths, and improvement suggestions. Produces individual scores for structure, clarity, and flow, plus actionable suggestions by category.
 
 ---
 
 ### 🧠 6. Character Evolution Tracking
 
-Tracks emotional progression, behavioral changes, and narrative arc shape across the full text. Identifies trigger events and outputs a staged arc (3–6 stages) grounded in direct text evidence.
-
-Arc types: positive growth, negative descent, flat, cyclical, or complex.
+Tracks emotional progression, behavioral changes, and narrative arc shape across the full text. Identifies trigger events and outputs a staged arc grounded in direct text evidence, with arc type classification (Hero's Journey, Redemption Arc, Static, etc.).
 
 ---
 
 ### 🧩 7. Narrative Memory Graph (Mindmap Generation) ⭐
 
-Extracts characters, locations, organizations, themes, time references, and relationships from your narrative using a hybrid **spaCy NER + LLM** pipeline.
+Extracts characters, locations, organizations, themes, and time references from your narrative in a two-pass AI pipeline: entity extraction followed by relationship mapping.
 
-Generates React Flow–compatible graph nodes and edges with relationship mapping and narrative summary metrics.
+Generates React Flow–compatible graph nodes and edges with relationship types, narrative summary metrics, and entity counts.
 
 ---
 
 ### 🖼 8. Mindmap Visualization Engine
 
-Converts the extracted graph into a visual image using NetworkX for layout. Applies entity-type color coding (characters, locations, themes, organizations). Produces a **downloadable PNG mindmap**.
+Converts the extracted graph into a visual PNG image using **NetworkX** for spring layout and **Matplotlib** for rendering. Applies entity-type color coding (characters, locations, organizations, themes) on a dark background. Produces a **downloadable PNG mindmap** with edge labels.
 
 ---
 
 ### 🧾 9. Explainable AI Modifications
 
-Every enhancement includes: change detection, word-level diff computation, similarity scoring, and a reason for each modification. Makes AI decisions transparent and interpretable.
+Every enhancement returns: word-level diff computation, similarity scoring, and a reason for each key change. Makes AI decisions transparent and interpretable.
 
 ---
 
 ### 📚 10. Document Management System
 
-Save, retrieve, and preview documents. Tracks enhancement history per document with full input/output storage.
+Save, retrieve, and preview documents. Up to 20 most recent documents per user, with content preview (first 200 characters) on the list view.
 
 ---
 
 ### 📜 11. Enhancement History & Audit Trail
 
-Every operation is logged with: operation type, credits used, persona applied, and input vs. output content — accessible from the History page.
+Every operation is logged with: operation type, credits used, persona applied, input text, and output text — last 50 entries per user, accessible from the History page.
 
 ---
 
 ### 📁 12. File Upload & Text Extraction
 
-Supports PDF, TXT, and Markdown (`.md`) uploads. Extracts raw text, word count, and character count automatically on upload.
+Supports PDF, TXT, and Markdown (`.md`) uploads (max 16 MB). Extracts raw text, word count, and character count automatically on upload using **PyPDF2**.
 
 ---
 
 ### 📖 13. AI Story Completion Engine ⭐
 
-Completes partial stories and scripts with genre-aware continuation. Outputs a structured story arc with character detection.
+Completes partial stories and scripts with genre-aware continuation. Outputs a full structured story with title, summary, character list, detected genre, word count, and a four-part story structure (setup, conflict, climax, resolution).
 
 Configurable options:
 
 - **Genre:** General, Fantasy, Sci-Fi, Romance, Thriller, Horror, Comedy, Drama
 - **Style:** Narrative, Screenplay, First-Person, Third-Person
-- **Length:** Short, Medium, Long
+- **Length:** Short (500–800 words), Medium (1000–1500), Long (2000–3000)
 
-Supports both direct text input and file-based completion.
+Supports both direct text input and file-based completion. Completed story is auto-saved as a document.
 
 ---
 
 ### 🧪 14. Deep Consistency Scan
 
-Combines consistency analysis and structural evaluation in a single pass. Returns an aggregate score and unified issue report.
+Combines consistency analysis and structural evaluation in a single pass. Returns both full reports plus a combined aggregate score.
 
 ---
 
 ### 🛠 15. Debug & Health Utilities
 
-- `GET /` — service liveness check
-- `GET /health` — environment and config status
-- Active model verification via LiteLLM
+- `GET /api/health` — service liveness check
+- `GET /api/debug/models` — active model and provider verification
 
 ---
 
@@ -160,15 +157,14 @@ Combines consistency analysis and structural evaluation in a single pass. Return
 - **Tailwind CSS** + **shadcn/ui** for components
 - **Framer Motion** for animations
 - **React Router** for navigation
-- **Supabase JS** for auth (JWT)
-- **Stripe.js** for payments
 
 ### Backend
-- **FastAPI** (Python 3.10+) — async, fully typed
-- **LiteLLM** — unified LLM gateway (provider-agnostic)
-- **spaCy** — local NER for entity extraction in the mindmap pipeline
-- **Supabase** — PostgreSQL database + Auth + Row Level Security
-- **Stripe** — payment processing with webhook support
+- **Flask** (Python 3.10+) — single-file architecture
+- **Flask-CORS** — cross-origin request handling
+- **PyJWT** + **bcrypt** — custom JWT auth with secure password hashing
+- **MongoDB** + **PyMongo** — database for users, documents, and history
+- **NetworkX** + **Matplotlib** — graph layout and mindmap PNG generation
+- **PyPDF2** — PDF text extraction
 
 ---
 
@@ -176,26 +172,14 @@ Combines consistency analysis and structural evaluation in a single pass. Return
 
 ```
 backend/
-├── app/
-│   ├── main.py              # FastAPI app, CORS, router registration
-│   ├── config.py            # Environment settings, credit costs, pricing
-│   ├── middleware/
-│   │   └── auth.py          # Supabase JWT verification dependency
-│   ├── db/
-│   │   └── supabase.py      # Credit ops, analysis logging, Supabase client
-│   ├── models/
-│   │   └── schemas.py       # Pydantic request/response models
-│   ├── routers/
-│   │   ├── enhance.py       # POST /enhance — streaming SSE persona rewrite
-│   │   ├── consistency.py   # POST /consistency — plot/timeline analysis
-│   │   ├── evolution.py     # POST /evolution — character arc tracking
-│   │   ├── mindmap.py       # POST /mindmap — entity graph generation
-│   │   └── credits.py       # GET/POST /credits — balance, Stripe, webhooks
-│   └── services/
-│       ├── llm.py           # LLM calls (enhance, stream, generic run_llm)
-│       ├── graph.py         # Mindmap pipeline: spaCy → LLM → graph
-│       ├── nlp.py           # spaCy NER + heuristic theme extraction
-│       └── diff.py          # Word-level diff for enhance results
+└── app.py               # Entire Flask backend in one file
+    ├── Auth routes       # /api/auth/*
+    ├── Enhance routes    # /api/enhance/*
+    ├── Analyze routes    # /api/analyze/*
+    ├── Mindmap routes    # /api/mindmap/*
+    ├── Story routes      # /api/story/*
+    ├── Credits routes    # /api/credits/*
+    └── Upload routes     # /api/upload/*
 
 frontend/
 ├── src/
@@ -208,9 +192,9 @@ frontend/
 │   │   ├── DiffView.tsx     # Highlighted before/after diff
 │   │   └── AnalysisPanel.tsx
 │   ├── contexts/
-│   │   └── AuthContext.tsx  # Supabase session + user state
+│   │   └── AuthContext.tsx  # Auth state management
 │   └── lib/
-│       └── api.ts           # All API calls to FastAPI backend
+│       └── api.ts           # All API calls to Flask backend
 ```
 
 ---
@@ -220,47 +204,39 @@ frontend/
 ### Prerequisites
 - Python 3.10+
 - Node.js 18+
-- A [Supabase](https://supabase.com) project
-- A [Stripe](https://stripe.com) account
+- A running MongoDB instance ([MongoDB Atlas](https://www.mongodb.com/atlas) or local)
+- An AI API key
 
 ### Backend Setup
 
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate       # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python -m spacy download en_core_web_sm
+pip install flask flask-cors pymongo bcrypt pyjwt python-dotenv \
+            PyPDF2 networkx matplotlib groq
 ```
 
 Create a `.env` file:
 
 ```env
-# Supabase
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_KEY=your-service-role-key
+# MongoDB
+MONGODB_URI=mongodb://localhost:27017/narrativeiq
 
-# LLM
-LLM_PROVIDER=gemini/gemini-1.5-flash
-LLM_API_KEY=your-api-key
+# Auth
+SECRET_KEY=your-secret-key-here
 
-# Stripe
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+# AI
+GROQ_API_KEY=your-api-key
 
 # App
-FRONTEND_URL=http://localhost:5173
-APP_ENV=development
+NEW_USER_CREDITS=5
 ```
 
 Run the server:
 
 ```bash
-uvicorn app.main:app --reload
+python app.py
 ```
 
-API docs available at `http://localhost:8000/docs`
+API runs at `http://localhost:5000`
 
 ### Frontend Setup
 
@@ -272,10 +248,7 @@ npm install
 Create a `.env.local` file:
 
 ```env
-VITE_API_URL=http://localhost:8000
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+VITE_API_URL=http://localhost:5000
 ```
 
 ```bash
@@ -284,34 +257,58 @@ npm run dev
 
 ---
 
-
----
-
-## Credit Packs
-
-| Pack | Credits | Price |
-|---|---|---|
-| Starter | 20 | ₹99 |
-| Pro | 60 | ₹249 |
-| Unlimited | 150 | ₹499 |
-
----
-
 ## API Overview
 
-All endpoints require a `Authorization: Bearer <supabase_jwt>` header.
+All protected endpoints require `Authorization: Bearer <token>`.
 
 ```
-GET  /credits                    → current balance
-POST /credits/create-order       → create Stripe PaymentIntent
-POST /credits/verify-payment     → verify & credit after payment
-POST /credits/webhook            → Stripe webhook handler
+# Auth
+POST /api/auth/register          → register & receive token
+POST /api/auth/login             → login & receive token
+GET  /api/auth/me                → current user info
+PUT  /api/auth/update-profile    → update name / email
+PUT  /api/auth/change-password   → change password
 
-POST /enhance                    → persona rewrite (SSE streaming)
-POST /consistency                → consistency analysis
-POST /evolution                  → character arc tracking
-POST /mindmap                    → narrative knowledge graph
+# Enhance
+POST /api/enhance/persona        → persona-driven rewrite (1 credit)
+GET  /api/enhance/personas       → list available personas
+GET  /api/enhance/history        → enhancement & analysis history
+POST /api/enhance/save           → save document
+GET  /api/enhance/documents      → list documents
+GET  /api/enhance/documents/:id  → get document
+
+# Analyze
+POST /api/analyze/consistency    → consistency check (1 credit)
+POST /api/analyze/structure      → structure & clarity (1 credit)
+POST /api/analyze/character      → character evolution (1 credit)
+POST /api/analyze/deep-scan      → deep scan (2 credits)
+
+# Mindmap
+POST /api/mindmap/generate       → graph data (2 credits)
+POST /api/mindmap/image          → downloadable PNG (2 credits)
+
+# Story
+POST /api/story/complete         → complete story from text (2 credits)
+POST /api/story/complete-from-file → complete story from file (2 credits)
+
+# Credits & Upload
+GET  /api/credits/balance        → current balance
+GET  /api/credits/pricing        → feature pricing list
+POST /api/upload/extract         → extract text from PDF/TXT/MD
 ```
 
 ---
+
+## Feature Pricing
+
+| Feature | Credits |
+|---|---|
+| Text Enhancement (any persona) | 1 |
+| Consistency Check | 1 |
+| Structure & Clarity Analysis | 1 |
+| Character Evolution Tracking | 1 |
+| Mindmap Generation | 2 |
+| Mindmap PNG Image | 2 |
+| Story Completion | 2 |
+| Deep Consistency Scan | 2 |
 
